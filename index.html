@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galaxy Particle Simulator 🌌</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #000 0%, #050010 100%);
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="universe"></canvas>
+  <div id="info">
+    <b>🌌 Galaxy Particle Simulator</b><br>
+    ✨ Move your mouse to disturb the galaxy<br>
+    🚀 Made with Pure JavaScript
+  </div>
+
+  <script>
+    const canvas = document.getElementById("universe");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let stars = [];
+    const STAR_COUNT = 1000;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    class Star {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.angle = Math.random() * 2 * Math.PI;
+        this.radius = Math.random() * Math.min(centerX, centerY);
+        this.size = Math.random() * 2;
+        this.speed = 0.001 + Math.random() * 0.002;
+        this.orbit = this.radius;
+      }
+
+      update(mouse) {
+        this.angle += this.speed;
+        let dx = Math.cos(this.angle) * this.orbit;
+        let dy = Math.sin(this.angle) * this.orbit;
+
+        // Small gravitational pull effect from mouse
+        if (mouse.x !== null && mouse.y !== null) {
+          let distX = mouse.x - (centerX + dx);
+          let distY = mouse.y - (centerY + dy);
+          let dist = Math.sqrt(distX*distX + distY*distY);
+
+          if (dist < 150) {
+            dx += distX * 0.05;
+            dy += distY * 0.05;
+          }
+        }
+
+        this.x = centerX + dx;
+        this.y = centerY + dy;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+        ctx.fillStyle = `hsla(${200 + Math.random()*100}, 100%, 80%, 0.8)`;
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      stars = [];
+      for (let i = 0; i < STAR_COUNT; i++) {
+        stars.push(new Star());
+      }
+    }
+
+    let mouse = {x: null, y: null};
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    function animate() {
+      ctx.fillStyle = "rgba(0,0,10,0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(star => {
+        star.update(mouse);
+        star.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      init();
+    });
+
+    init();
+    animate();
+  </script>
+</body>
+</html>
